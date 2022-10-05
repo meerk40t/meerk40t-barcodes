@@ -33,8 +33,8 @@ Arguments:
 >     code      The code to process
 
  Options:
- >    --notext  (-n)      suppress text display
- >    --asgroup (-a)      create a group of rects instead of a path
+>    --notext  (-n)      suppress text display
+>    --asgroup (-a)      create a group of rects instead of a path
 
 # Installing
 
