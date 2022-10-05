@@ -45,3 +45,10 @@ Arguments:
 
 * If you are developing your own extension for meerk40t you will want to use:
 * `$ pip install -e .` this installs the python module in edit mode which allows you to easily see and experience your changes. Without reinstalling your module.
+
+# Acknowledgements
+
+* This MeerK40t extension uses the work of two great libraries to create barcodes & QR codes:
+
+- The python-barcode library (https://github.com/WhyNotHugo/python-barcode)
+- The qrcode library (https://github.com/lincolnloop/python-qrcode)
