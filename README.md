@@ -1,8 +1,8 @@
-# meerk40t-barcodes-extension
-MeerK40t Barcode extension.
+# meerk40t-barcodes
+MeerK40t 0.8+ Barcode extension.
 
 
-# Barcode-Extensions.
+# Barcode-Extension
 
 * Registers the console command: `qrcode` which will generate a qrcode
 
@@ -37,7 +37,8 @@ Arguments:
 >    --asgroup (-a)      create a group of rects instead of a path
 
 # Installing
-
+* `pip install meerk40t-barcodes`
+Or
 * Download into a directory:
 * `$ pip install .`
 
