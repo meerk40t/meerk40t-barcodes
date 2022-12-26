@@ -706,10 +706,6 @@ def register_qr_code_stuff(kernel):
         data=None,
         **kwargs,
     ):
-        """
-        Example is part of the meerk40t example plugin this command only prints hello world. This part of the
-        command will show up in the extended help for "help example".
-        """
         elements = _kernel.elements
         if code is not None:
             code = elements.mywordlist.translate(code)
