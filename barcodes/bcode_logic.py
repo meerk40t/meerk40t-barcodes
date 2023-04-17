@@ -2,7 +2,9 @@
 This module contains the logic to create the different barcode elements
 """
 
-def render_barcode(context,
+
+def render_barcode(
+    context,
     x_pos=None,
     y_pos=None,
     dimx=None,
@@ -283,7 +285,9 @@ def render_barcode(context,
     max_wd, max_ht, ox, oy, data = poor_mans_svg_parser(result, True)
     return data
 
-def create_barcode(kernel,
+
+def create_barcode(
+    kernel,
     channel,
     x_pos=None,
     y_pos=None,
@@ -314,9 +318,10 @@ def create_barcode(kernel,
         channel(_("Invalid dimensions provided"))
         return None
     if notext is None:
-        notext = True
+        notext = False
 
-    data = render_barcode(kernel,
+    data = render_barcode(
+        kernel,
         x_pos=x_pos,
         y_pos=y_pos,
         dimx=dimx,
@@ -325,6 +330,9 @@ def create_barcode(kernel,
         code=code,
         notext=notext,
     )
+    if data is None:
+        return None
+
     for node in data:
         if node.type == "elem path":
             # We store the data for later customisation
@@ -335,6 +343,7 @@ def create_barcode(kernel,
         elements.elem_branch.add_node(node)
     return data
 
+
 def update_barcode(context, node, code):
     if node is None:
         return
@@ -344,22 +353,23 @@ def update_barcode(context, node, code):
         or getattr(node, "mkbarcode") != "ean"
     ):
         return
-    print(f"update called with {code}")
     elements = context.elements
     orgcode = code
     if code is not None:
         code = elements.mywordlist.translate(code)
+    print(f"update called with {code} ({orgcode})")
 
     btype = getattr(node, "mkparam", "")
     if btype == "":
         btype = "ean14"
-    bb = node.bounds
+    bb = node.path.bbox(False)
     x_pos = bb[0]
     y_pos = bb[1]
     dimx = bb[2] - bb[0]
     dimy = bb[3] - bb[1]
     notext = True
-    data = render_barcode(context=context,
+    data = render_barcode(
+        context=context,
         x_pos=x_pos,
         y_pos=y_pos,
         dimx=dimx,
@@ -368,6 +378,8 @@ def update_barcode(context, node, code):
         code=code,
         notext=notext,
     )
+    if data is None:
+        return None
     for e in data:
         if e.type == "elem path":
             olda = node.path.transform.a
@@ -377,6 +389,7 @@ def update_barcode(context, node, code):
             olde = node.path.transform.e
             oldf = node.path.transform.f
             node.path = abs(e.path)
+            node.path.transform.reset()
             node.path.transform.a = olda
             node.path.transform.b = oldb
             node.path.transform.c = oldc
@@ -550,7 +563,7 @@ def update_qr(context, node, code):
         or getattr(node, "mkbarcode") != "qr"
     ):
         return
-    print(f"update called with {code}")
+    # print(f"update called with {code}")
     elements = context.elements
     orgcode = code
     if code is not None:
@@ -577,6 +590,8 @@ def update_qr(context, node, code):
             boxsize = valu[2]
             border = valu[3]
 
+    bb = node.path.bbox(False)
+    wd = bb[2] - bb[0]
     path = render_qr(context, version, errc, boxsize, border, wd, code)
 
     # DEBUG CODE
@@ -596,6 +611,7 @@ def update_qr(context, node, code):
     olde = node.path.transform.e
     oldf = node.path.transform.f
     node.path = abs(path)
+    node.path.transform.reset()
     node.path.transform.a = olda
     node.path.transform.b = oldb
     node.path.transform.c = oldc
