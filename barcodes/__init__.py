@@ -1,1 +1,1 @@
-name = "meerk40t"
+name = "meerk40t-barcodes"
