@@ -2,10 +2,7 @@
 This module contains the logic to create the different barcode elements
 """
 
-
-def create_barcode(
-    kernel,
-    channel,
+def render_barcode(context,
     x_pos=None,
     y_pos=None,
     dimx=None,
@@ -15,7 +12,7 @@ def create_barcode(
     notext=None,
 ):
     import barcode
-    from meerk40t.svgelements import Color, Matrix, Path, Rect
+    from meerk40t.svgelements import Color, Matrix, Path
 
     def poor_mans_svg_parser(svg_str, actionable):
         origin_x = float("inf")
@@ -43,7 +40,6 @@ def create_barcode(
                     scale_y = elements.length_y(dimy) / (maximum_height - origin_y)
             offset_x = elements.length_x(x_pos)
             offset_y = elements.length_y(y_pos)
-        groupnode = None
         barcodepath = None
         pathcode = ""
         pattern_rect = "<rect"
@@ -189,7 +185,7 @@ def create_barcode(
                 # print (f"Decoded {elem['type']}: txt='{elem['text']}', x={elem['x']}, y={elem['y']}, anchor={elem['anchor']}, size={elem['size']}, stroke={elem['stroke']}, fill={elem['fill']}")
                 if elem["x"] is None or elem["y"] is None:
                     continue
-                if actionable and not skiptext:
+                if actionable and not notext:
                     this_x = offset_x + scale_x * (
                         elements.length_x(elem["x"]) - origin_x
                     )
@@ -208,7 +204,7 @@ def create_barcode(
                         - scale_y * compensation
                         + scale_y * (elements.length_y(elem["y"]) - origin_y)
                     )
-                    node = elements.elem_branch.add(
+                    node = elements.elem_branch.create(
                         text=elem["text"],
                         matrix=Matrix(
                             f"translate({this_x}, {this_y}) scale({UNITS_PER_PIXEL})"
@@ -226,8 +222,6 @@ def create_barcode(
                     )
                     node.fill = None if elem["fill"] is None else Color(elem["fill"])
                     data.append(node)
-                    if groupnode is not None:
-                        groupnode.append_child(node)
                 else:
                     # We establish dimensions, but we don't apply it
                     # print (f"check text extent for x={elem['x']}, y={elem['y']}")
@@ -246,7 +240,7 @@ def create_barcode(
                         matrix=Matrix(),
                     )
                     barcodepath.parse(pathcode)
-                    node = elements.elem_branch.add(
+                    node = elements.elem_branch.create(
                         path=abs(barcodepath),
                         stroke_width=0,
                         stroke_scaled=False,
@@ -263,23 +257,42 @@ def create_barcode(
                     )
                     node.fill = None if elem["fill"] is None else Color(elem["fill"])
                     data.append(node)
-                    if groupnode is not None:
-                        groupnode.append_child(node)
 
-                groupnode = None
             elif pattern_group_start in line:
                 # print(f"Group start: '{line}'")
                 if actionable:
                     pathcode = ""
-                    if not skiptext:
-                        groupnode = elements.elem_branch.add(
-                            type="group",
-                            label=f"Barcode {btype}: {code}",
-                            id=f"{btype}",
-                        )
-                        data.append(groupnode)
         return maximum_width, maximum_height, origin_x, origin_y, data
 
+    elements = context.elements
+    bcode_class = barcode.get_barcode_class(btype)
+    if hasattr(bcode_class, "digits"):
+        digits = getattr(bcode_class, "digits", 0)
+        if digits > 0:
+            while len(code) < digits:
+                code = "0" + code
+    writer = barcode.writer.SVGWriter()
+    try:
+        my_barcode = bcode_class(code, writer=writer)
+    except:
+        return None
+    if hasattr(my_barcode, "build"):
+        my_barcode.build()
+    bytes_result = my_barcode.render()
+    result = bytes_result.decode("utf-8")
+    max_wd, max_ht, ox, oy, data = poor_mans_svg_parser(result, True)
+    return data
+
+def create_barcode(kernel,
+    channel,
+    x_pos=None,
+    y_pos=None,
+    dimx=None,
+    dimy=None,
+    btype=None,
+    code=None,
+    notext=None,
+):
     # ---------------------------------
     _ = kernel.translation
     elements = kernel.elements
@@ -300,27 +313,18 @@ def create_barcode(
     except ValueError:
         channel(_("Invalid dimensions provided"))
         return None
-    skiptext = False
-    if notext is not None:
-        skiptext = True
+    if notext is None:
+        notext = True
 
-    bcode_class = barcode.get_barcode_class(btype)
-    if hasattr(bcode_class, "digits"):
-        digits = getattr(bcode_class, "digits", 0)
-        if digits > 0:
-            while len(code) < digits:
-                code = "0" + code
-    writer = barcode.writer.SVGWriter()
-    try:
-        my_barcode = bcode_class(code, writer=writer)
-    except:
-        channel(_("Invalid characters in barcode"))
-        return None
-    if hasattr(my_barcode, "build"):
-        my_barcode.build()
-    bytes_result = my_barcode.render()
-    result = bytes_result.decode("utf-8")
-    max_wd, max_ht, ox, oy, data = poor_mans_svg_parser(result, True)
+    data = render_barcode(kernel,
+        x_pos=x_pos,
+        y_pos=y_pos,
+        dimx=dimx,
+        dimy=dimy,
+        btype=btype,
+        code=code,
+        notext=notext,
+    )
     for node in data:
         if node.type == "elem path":
             # We store the data for later customisation
@@ -328,7 +332,61 @@ def create_barcode(
             node.mkbarcode = "ean"
             node.mkparam = btype
             node._translated_text = code
+        elements.elem_branch.add_node(node)
     return data
+
+def update_barcode(context, node, code):
+    if node is None:
+        return
+    if (
+        not hasattr(node, "mktext")
+        or not hasattr(node, "mkbarcode")
+        or getattr(node, "mkbarcode") != "ean"
+    ):
+        return
+    print(f"update called with {code}")
+    elements = context.elements
+    orgcode = code
+    if code is not None:
+        code = elements.mywordlist.translate(code)
+
+    btype = getattr(node, "mkparam", "")
+    if btype == "":
+        btype = "ean14"
+    bb = node.bounds
+    x_pos = bb[0]
+    y_pos = bb[1]
+    dimx = bb[2] - bb[0]
+    dimy = bb[3] - bb[1]
+    notext = True
+    data = render_barcode(context=context,
+        x_pos=x_pos,
+        y_pos=y_pos,
+        dimx=dimx,
+        dimy=dimy,
+        btype=btype,
+        code=code,
+        notext=notext,
+    )
+    for e in data:
+        if e.type == "elem path":
+            olda = node.path.transform.a
+            oldb = node.path.transform.b
+            oldc = node.path.transform.c
+            oldd = node.path.transform.d
+            olde = node.path.transform.e
+            oldf = node.path.transform.f
+            node.path = abs(e.path)
+            node.path.transform.a = olda
+            node.path.transform.b = oldb
+            node.path.transform.c = oldc
+            node.path.transform.d = oldd
+            node.path.transform.e = olde
+            node.path.transform.f = oldf
+
+            node.mktext = orgcode
+            node._translated_text = code
+            node.altered()
 
 
 def render_qr(context, version, errc, boxsize, border, wd, code):
@@ -479,17 +537,6 @@ def create_qr(
 
     data = [node]
     return data
-
-
-def update_ean(context, node, code):
-    if node is None:
-        return
-    if (
-        not hasattr(node, "mktext")
-        or not hasattr(node, "mkbarcode")
-        or getattr(node, "mkbarcode") != "ean"
-    ):
-        return
 
 
 def update_qr(context, node, code):
