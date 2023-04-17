@@ -1,8 +1,10 @@
 import wx
 from barcode import PROVIDED_BARCODES
+
 from .bcode_logic import update_ean, update_qr
 
 _ = wx.GetTranslation
+
 
 class BarcodeDialog(wx.Dialog):
 
@@ -74,9 +76,7 @@ class BarcodeDialog(wx.Dialog):
         label = wx.StaticText(self, wx.ID_ANY, label=_("Width/Height:"))
         label.SetMinSize(wx.Size(80, -1))
         self.text_qrdim = wx.TextCtrl(self, wx.ID_ANY, "4cm")
-        self.text_qrdim.SetToolTip(
-            _("How wide/high will the resulting qr-code be?")
-        )
+        self.text_qrdim.SetToolTip(_("How wide/high will the resulting qr-code be?"))
         self.text_qrdim.SetMaxSize(wx.Size(100, -1))
         qrdim_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         qrdim_sizer.Add(self.text_qrdim, 1, wx.EXPAND, 0)
@@ -151,9 +151,7 @@ class BarcodeDialog(wx.Dialog):
             choices=PROVIDED_BARCODES,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
         )
-        self.combo_barcode.SetToolTip(
-            _("What kind of barcode do you want to create?")
-        )
+        self.combo_barcode.SetToolTip(_("What kind of barcode do you want to create?"))
         self.combo_barcode.SetSelection(4)  # ean13
         bartype_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         bartype_sizer.Add(self.combo_barcode, 1, wx.EXPAND, 0)
@@ -185,23 +183,10 @@ class BarcodeDialog(wx.Dialog):
         barcheck1_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         barcheck1_sizer.Add(self.check_suppress, 1, wx.ALIGN_CENTER_VERTICAL, 0)
 
-        barcheck2_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, wx.ID_ANY, label=_("Rectangles:"))
-        label.SetMinSize(wx.Size(80, -1))
-        self.check_group = wx.CheckBox(self, wx.ID_ANY, "")
-        self.check_group.SetToolTip(
-            _("Do you want to have the barcode as individual rectangles?")
-        )
-        self.check_group.SetMinSize(self.text_bardimx.GetSize())
-        barcheck2_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        barcheck2_sizer.Add(self.check_group, 1, wx.ALIGN_CENTER_VERTICAL, 0)
-        self.check_group.SetMinSize(self.text_bardimx.GetSize())
-
         baroptions_sizer.Add(bartype_sizer, 0, wx.EXPAND, 0)
         baroptions_sizer.Add(bardimx_sizer, 0, wx.EXPAND, 0)
         baroptions_sizer.Add(bardimy_sizer, 0, wx.EXPAND, 0)
         baroptions_sizer.Add(barcheck1_sizer, 0, wx.EXPAND, 0)
-        baroptions_sizer.Add(barcheck2_sizer, 0, wx.EXPAND, 0)
 
         qr_sizer.Add(self.option_qr, 0, wx.EXPAND, 1)
         qr_sizer.Add(qroptions_sizer, 1, wx.EXPAND, 0)
@@ -264,7 +249,6 @@ class BarcodeDialog(wx.Dialog):
         self.text_bardimx.Enable(bar)
         self.text_bardimy.Enable(bar)
         self.check_suppress.Enable(bar)
-        self.check_group.Enable(bar)
 
     def enable_buttons(self, event):
         active = True
@@ -326,15 +310,11 @@ class BarcodeDialog(wx.Dialog):
             dimy = self.text_bardimy.GetValue()
             btype = PROVIDED_BARCODES[self.combo_barcode.GetSelection()]
             if self.check_suppress.GetValue():
-                suppress = " --suppress"
+                suppress = " --notext"
             else:
                 suppress = ""
-            if self.check_group.GetValue():
-                asgroup = " --asgroup"
-            else:
-                asgroup = ""  # " --asgroup"
             result = f'barcode {xpos} {ypos} {dimx} {dimy} {btype} "{code}"'
-            result += f"{suppress}{asgroup}"
+            result += f"{suppress}"
         self.command = result
         event.Skip()
 
@@ -365,16 +345,30 @@ class BarcodeDialog(wx.Dialog):
     def make_vcard(self, **kwds):
         """
         Tag	i-mode compatible bar code recognition function	Description	Example
-        ADR	3.0	The physical delivery address. The fields divided by commas (,) denote PO box, room number, house number, city, prefecture, zip code and country, in order.	ADR:,,123 Main St.,Springfield,IL,12345,USA;
-        BDAY	3.0	8 digits for date of birth: year (4 digits), month (2 digits) and day (2 digits), in order.	BDAY:19700310;
-        EMAIL	1.0	The address for electronic mail communication.	EMAIL:johndoe@hotmail.com;
-        N	1.0	A structured representation of the name of the person. When a field is divided by a comma (,), the first half is treated as the last name and the second half is treated as the first name.	N:Doe,John;
-        NICKNAME	3.0	Familiar name for the object represented by this MeCard.	NICKNAME:Johnny;
-        NOTE	1.0	Specifies supplemental information to be set as memo in the phonebook.	NOTE:I am proficient in Tiger-Crane Style,\nand I am more than proficient in the exquisite art of the Samurai sword.;
-        SOUND	1.0	Designates a text string to be set as the kana name in the phonebook. When a field is divided by a comma (,), the first half is treated as the last name and the second half is treated as the first name.
-        TEL	1.0	The canonical number string for a telephone number for telephony communication.	TEL:(123) 555-5832;
-        TEL-AV	2.0	The canonical string for a videophone number communication.	TEL-AV:(123) 555-5832;
-        URL	3.0	A URL pointing to a website that represents the person in some way.	URL:https://www.johndoe.com/
+        ADR	        The physical delivery address. The fields divided by commas (,) denote
+                    PO box, room number, house number, city, prefecture, zip code and country, in order.
+                    ADR:,,123 Main St.,Springfield,IL,12345,USA;
+        BDAY	    8 digits for date of birth: year (4 digits), month (2 digits) and day (2 digits), in order.
+                    BDAY:19700310;
+        EMAIL	    The address for electronic mail communication.
+                    EMAIL:johndoe@hotmail.com;
+        N	        A structured representation of the name of the person. When a field is divided
+                    by a comma (,), the first half is treated as the last name and the second half
+                    is treated as the first name.
+                    N:Doe,John;
+        NICKNAME    Familiar name for the object represented by this MeCard.
+                    NICKNAME:Johnny;
+        NOTE	    Specifies supplemental information to be set as memo in the phonebook.
+                    NOTE:I am proficient in Tiger-Crane Style,\nand I am more than proficient in the exquisite art of the Samurai sword.;
+        SOUND	    Designates a text string to be set as the kana name in the phonebook.
+                    When a field is divided by a comma (,), the first half is treated as the last name
+                    and the second half is treated as the first name.
+        TEL	        The canonical number string for a telephone number for telephony communication.
+                    TEL:(123) 555-5832;
+        TEL-AV	    The canonical string for a videophone number communication.
+                    TEL-AV:(123) 555-5832;
+        URL	        A URL pointing to a website that represents the person in some way.
+                    URL:https://www.johndoe.com/;
         """
         result = "MECARD:"
         if "name" in kwds:
@@ -389,7 +383,6 @@ class BarcodeDialog(wx.Dialog):
             result += f"TEL:{kwds['tel']};"
         if "url" in kwds:
             result += f"URL:{kwds['url']};"
-
 
         while not result.endswith(";;"):
             result += ";"
@@ -415,7 +408,7 @@ class QRCodePropertyPanel(wx.Panel):
         self.node = node
 
         main_sizer = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, _("Text to use:")), wx.HORIZONTAL
+            wx.StaticBox(self, wx.ID_ANY, _("Text to use for QR-Code:")), wx.HORIZONTAL
         )
         self.text_text = wx.TextCtrl(self, wx.ID_ANY, "")
         main_sizer.Add(self.text_text, 1, wx.EXPAND, 0)
@@ -433,7 +426,7 @@ class QRCodePropertyPanel(wx.Panel):
 
     def accepts(self, node):
         if (
-            hasattr(node, "mkfont")
+            hasattr(node, "mktext")
             and hasattr(node, "mkbarcode")
             and getattr(node, "mkbarcode") == "qr"
         ):
@@ -452,12 +445,15 @@ class QRCodePropertyPanel(wx.Panel):
 
     def update_node(self):
         vtext = self.text_text.GetValue()
+        if self.node.mktext == vtext:
+            return
         update_qr(self.context, self.node, vtext)
         self.context.signal("element_property_reload", self.node)
         self.context.signal("refresh_scene", "Scene")
 
     def on_text_change(self, event):
         self.update_node()
+
 
 class EANCodePropertyPanel(wx.Panel):
     """
@@ -478,7 +474,7 @@ class EANCodePropertyPanel(wx.Panel):
         self.node = node
 
         main_sizer = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, _("Text to use:")), wx.HORIZONTAL
+            wx.StaticBox(self, wx.ID_ANY, _("Text to use for EAN-Code:")), wx.HORIZONTAL
         )
         self.text_text = wx.TextCtrl(self, wx.ID_ANY, "")
         main_sizer.Add(self.text_text, 1, wx.EXPAND, 0)
@@ -496,7 +492,7 @@ class EANCodePropertyPanel(wx.Panel):
 
     def accepts(self, node):
         if (
-            hasattr(node, "mkfont")
+            hasattr(node, "mktext")
             and hasattr(node, "mkbarcode")
             and getattr(node, "mkbarcode") == "ean"
         ):
@@ -515,6 +511,8 @@ class EANCodePropertyPanel(wx.Panel):
 
     def update_node(self):
         vtext = self.text_text.GetValue()
+        if self.node.mktext == vtext:
+            return
         update_ean(self.context, self.node, vtext)
         self.context.signal("element_property_reload", self.node)
         self.context.signal("refresh_scene", "Scene")

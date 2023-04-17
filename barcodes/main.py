@@ -249,17 +249,11 @@ def register_bar_code_stuff(kernel):
     """
     _ = kernel.translation
     import barcode
+
     from .bcode_logic import create_barcode
 
     @kernel.console_option(
         "notext", "n", type=bool, action="store_true", help=_("suppress text display")
-    )
-    @kernel.console_option(
-        "asgroup",
-        "a",
-        type=bool,
-        action="store_true",
-        help=_("create a group of rects instead of a path"),
     )
     @kernel.console_argument("x_pos", type=str, help=_("X-Position of barcode"))
     @kernel.console_argument("y_pos", type=str, help=_("Y-Position of barcode"))
@@ -343,9 +337,11 @@ def register_bar_code_stuff(kernel):
             btype=btype,
             code=code,
             notext=notext,
-            asgroup=asgroup,
         )
         if data is not None:
+            if elements.classify_new:
+                elements.classify(data)
+
             elements.signal("element_added", data)
             return "elements", data
 
@@ -414,6 +410,8 @@ def register_qr_code_stuff(kernel):
             version=version,
         )
         if data is not None:
+            if elements.classify_new:
+                elements.classify(data)
             elements.signal("element_added", data)
             return "elements", data
 
@@ -426,7 +424,9 @@ def update_qr(context, node):
         and getattr(node, "mkbarcode") == "qr"
     ):
         from .bcode_logic import update_qr
+
         update_qr(context, node, node.mktext)
+
 
 def update_ean(context, node):
     # We need to check for the validity ourselves...
@@ -436,13 +436,15 @@ def update_ean(context, node):
         and getattr(node, "mkbarcode") == "ean"
     ):
         from .bcode_logic import update_ean
+
         update_ean(context, node, node.mktext)
+
 
 def register_gui_stuff(module):
     import wx
-    from .tools.icons import icons8_barcode_50, STD_ICON_SIZE
-    from .gui import BarcodeDialog, QRCodePropertyPanel, EANCodePropertyPanel
 
+    from .gui import BarcodeDialog, EANCodePropertyPanel, QRCodePropertyPanel
+    from .tools.icons import STD_ICON_SIZE, icons8_barcode_50
 
     context = module.context
     kernel = context._kernel
@@ -464,7 +466,6 @@ def register_gui_stuff(module):
     # The interface for later customisation
     kernel.register("path_attributes/qrcode", QRCodePropertyPanel)
     kernel.register("path_attributes/eancode", EANCodePropertyPanel)
-
 
     def display_barcode_dialog(context):
         dialog = BarcodeDialog(context, None, wx.ID_ANY, "")
