@@ -31,7 +31,7 @@ def create_barcode(
                 maximum_height,
                 origin_x,
                 origin_y,
-                dummy_data
+                dummy_data,
             ) = poor_mans_svg_parser(svg_str, False)
             scale_x = 1
             scale_y = 1
@@ -330,15 +330,13 @@ def create_barcode(
             node._translated_text = code
     return data
 
+
 def render_qr(context, version, errc, boxsize, border, wd, code):
     import qrcode
     import qrcode.image.svg
     from meerk40t.core.units import Length
     from meerk40t.svgelements import Matrix, Path
 
-    print(
-        f"Render called with: version={version}, errc={errc}, boxisze={boxsize}, border={border}"
-    )
     path = None
     elements = context.elements
     qr = qrcode.QRCode(
@@ -362,7 +360,6 @@ def render_qr(context, version, errc, boxsize, border, wd, code):
     dim_x = "3cm"
     dim_y = "3cm"
     test = Length(wd)
-    print(dim_x, dim_y, wd, test.cm)
     txt = str(img.to_string())
     pattern = 'viewBox="'
     idx = txt.find(pattern)
@@ -525,9 +522,6 @@ def update_qr(context, node, code):
 
     boxsize = 10
     border = 4
-    bb = node.bounds
-    wd = node.bounds[2] - node.bounds[0]
-    print(bb, wd)
     if hasattr(node, "mkparam"):
         valu = node.mkparam
         if isinstance(valu, (list, tuple)) and len(valu) > 3:
@@ -538,13 +532,23 @@ def update_qr(context, node, code):
 
     path = render_qr(context, version, errc, boxsize, border, wd, code)
 
+    # DEBUG CODE
+    # bb = node.bounds
+    # oldwd1 = bb[2] - bb[0]
+    # bb = node.path.bbox(False)
+    # oldwd2 = bb[2] - bb[0]
+    # bb = path.bbox(False)
+    # midwd2 = bb[2] - bb[0]
+    # olds = str(node.path)[0:50]
+    # news = str(path)[0:50]
+
     olda = node.path.transform.a
     oldb = node.path.transform.b
     oldc = node.path.transform.c
     oldd = node.path.transform.d
     olde = node.path.transform.e
     oldf = node.path.transform.f
-    node.path = path
+    node.path = abs(path)
     node.path.transform.a = olda
     node.path.transform.b = oldb
     node.path.transform.c = oldc
@@ -552,10 +556,21 @@ def update_qr(context, node, code):
     node.path.transform.e = olde
     node.path.transform.f = oldf
     # print (f"x={node.mkcoordx}, y={node.mkcoordy}")
-    # node.path.transform = Matrix.translate(node.mkcoordx, node.mkcoordy)
-    oldtext = node.mktext
-    old_trans = getattr(node, "_translated_text", "")
-    print(f"Updated: from {oldtext} ({old_trans}) -> {orgcode} ({code})")
+
+    # oldtext = node.mktext
+    # old_trans = getattr(node, "_translated_text", "")
+
     node.mktext = orgcode
     node._translated_text = code
     node.altered()
+
+    # DEBUG CODE
+    # bb = node.bounds
+    # newwd1 = bb[2] - bb[0]
+    # bb = node.path.bbox(False)
+    # newwd2 = bb[2] - bb[0]
+
+    # print(f"Updated: from {oldtext} ({old_trans}) -> {orgcode} ({code})")
+    # print(f"Old width: {oldwd1:.2f} ({oldwd2:.2f}), mid: ({midwd2:.2f}), new:{newwd1:.2f} ({newwd2:.2f})")
+    # print(f"Old: {olds}")
+    # print(f"New: {news}")
