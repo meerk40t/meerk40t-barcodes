@@ -34,7 +34,6 @@ Arguments:
 
  Options:
 >    --notext  (-n)      suppress text display
->    --asgroup (-a)      create a group of rects instead of a path
 
 # Installing
 * `pip install meerk40t-barcodes`
