@@ -78,7 +78,7 @@ def bcode_plugin(kernel, lifecycle):
             kernel.register("path_updater/qrcode", update_qr)
         if has_bar_code_module:
             register_bar_code_stuff(kernel)
-            kernel.register("path_updater/eancode", update_ean)
+            kernel.register("path_updater/eancode", update_barcode)
 
 
 def plugin(kernel, lifecycle):
@@ -428,16 +428,16 @@ def update_qr(context, node):
         update_qr(context, node, node.mktext)
 
 
-def update_ean(context, node):
+def update_barcode(context, node):
     # We need to check for the validity ourselves...
     if (
         hasattr(node, "mktext")
         and hasattr(node, "mkbarcode")
         and getattr(node, "mkbarcode") == "ean"
     ):
-        from .bcode_logic import update_ean
+        from .bcode_logic import update_barcode
 
-        update_ean(context, node, node.mktext)
+        update_barcode(context, node, node.mktext)
 
 
 def register_gui_stuff(module):

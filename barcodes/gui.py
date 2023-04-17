@@ -1,7 +1,7 @@
 import wx
 from barcode import PROVIDED_BARCODES
 
-from .bcode_logic import update_ean, update_qr
+from .bcode_logic import update_barcode, update_qr
 
 _ = wx.GetTranslation
 
@@ -513,7 +513,7 @@ class EANCodePropertyPanel(wx.Panel):
         vtext = self.text_text.GetValue()
         if self.node.mktext == vtext:
             return
-        update_ean(self.context, self.node, vtext)
+        update_barcode(self.context, self.node, vtext)
         self.context.signal("element_property_reload", self.node)
         self.context.signal("refresh_scene", "Scene")
 
