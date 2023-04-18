@@ -590,7 +590,7 @@ def update_qr(context, node, code):
     orgcode = code
     if code is not None:
         code = elements.mywordlist.translate(orgcode)
-    print(f"qr update called with {code} ({orgcode}) for {node.label}")
+    # print(f"qr update called with {code} ({orgcode}) for {node.label}")
 
     version = None
     errcode = "M"
