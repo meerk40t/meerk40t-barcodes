@@ -280,6 +280,7 @@ def render_barcode(
         return None
     if hasattr(my_barcode, "build"):
         my_barcode.build()
+    # print(f"Generated barcode for {code} ({btype})")
     bytes_result = my_barcode.render()
     result = bytes_result.decode("utf-8")
     max_wd, max_ht, ox, oy, data = poor_mans_svg_parser(result, True)
@@ -333,6 +334,10 @@ def create_barcode(
     if data is None:
         return None
 
+    groupnode = None
+    if len(data) > 0:
+        groupnode = elements.elem_branch.add(type="group", label=f"{btype} - {orgcode}")
+
     for node in data:
         if node.type == "elem path":
             # We store the data for later customisation
@@ -341,6 +346,8 @@ def create_barcode(
             node.mkparam = btype
             node._translated_text = code
         elements.elem_branch.add_node(node)
+        if groupnode is not None:
+            groupnode.append_child(node)
     return data
 
 
@@ -353,11 +360,15 @@ def update_barcode(context, node, code):
         or getattr(node, "mkbarcode") != "ean"
     ):
         return
+
     elements = context.elements
+    oldcode = node.mktext
+    if oldcode is not None:
+        oldcode = elements.mywordlist.translate(code)
     orgcode = code
     if code is not None:
         code = elements.mywordlist.translate(code)
-    print(f"update called with {code} ({orgcode})")
+    # print(f"ean update called with {code} ({orgcode}) for {node.label}")
 
     btype = getattr(node, "mkparam", "")
     if btype == "":
@@ -367,7 +378,7 @@ def update_barcode(context, node, code):
     y_pos = bb[1]
     dimx = bb[2] - bb[0]
     dimy = bb[3] - bb[1]
-    notext = True
+    notext = False
     data = render_barcode(
         context=context,
         x_pos=x_pos,
@@ -380,6 +391,7 @@ def update_barcode(context, node, code):
     )
     if data is None:
         return None
+    newcode = None
     for e in data:
         if e.type == "elem path":
             olda = node.path.transform.a
@@ -400,6 +412,17 @@ def update_barcode(context, node, code):
             node.mktext = orgcode
             node._translated_text = code
             node.altered()
+        elif e.type == "elem text":
+            newcode = e.text
+    # Let's see if we can find a text node in the same group as this...
+    if newcode is None or oldcode is None:
+        return
+    parent = node.parent
+    if parent.type == "group" and len(parent.children) == 2:
+        for e in parent.children:
+            if e.type == "elem text":
+                e.text = newcode
+                e.modified()
 
 
 def render_qr(context, version, errc, boxsize, border, wd, code):
@@ -563,11 +586,11 @@ def update_qr(context, node, code):
         or getattr(node, "mkbarcode") != "qr"
     ):
         return
-    # print(f"update called with {code}")
     elements = context.elements
     orgcode = code
     if code is not None:
-        code = elements.mywordlist.translate(code)
+        code = elements.mywordlist.translate(orgcode)
+    print(f"qr update called with {code} ({orgcode}) for {node.label}")
 
     version = None
     errcode = "M"
@@ -610,7 +633,10 @@ def update_qr(context, node, code):
     oldd = node.path.transform.d
     olde = node.path.transform.e
     oldf = node.path.transform.f
-    node.path = abs(path)
+    np = abs(path)
+    from copy import copy
+
+    node.path = copy(np)
     node.path.transform.reset()
     node.path.transform.a = olda
     node.path.transform.b = oldb
