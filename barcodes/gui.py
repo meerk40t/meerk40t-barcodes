@@ -65,26 +65,31 @@ class BarcodeDialog(wx.Dialog):
         qr_sizer = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, _("QR-Code:")), wx.VERTICAL
         )
-        qroptions_sizer = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, _("Options:")), wx.VERTICAL
-        )
+        qrnotebook = wx.Notebook(self, wx.ID_ANY)
+
+        # --------------- Option Panel
+
+        qrmain_panel = wx.Panel(qrnotebook, wx.ID_ANY)
+        qrnotebook.AddPage(qrmain_panel, _("Options"))
+        qroptions_sizer = wx.BoxSizer(wx.VERTICAL)
+        qrmain_panel.SetSizer(qroptions_sizer)
         qrdim_sizer = wx.BoxSizer(wx.HORIZONTAL)
         #      --boxsize  (-x)      Boxsize (default 10)
         #  --border   (-b)      Border around qr-code (default 4)
         #  --version  (-v)      size (1..40)
         #  --errcorr  (-e)      error correction, one of L (7%), M (15%), Q (25%), H (30%)
-        label = wx.StaticText(self, wx.ID_ANY, label=_("Width/Height:"))
+        label = wx.StaticText(qrmain_panel, wx.ID_ANY, label=_("Width/Height:"))
         label.SetMinSize(wx.Size(80, -1))
-        self.text_qrdim = wx.TextCtrl(self, wx.ID_ANY, "4cm")
+        self.text_qrdim = wx.TextCtrl(qrmain_panel, wx.ID_ANY, "4cm")
         self.text_qrdim.SetToolTip(_("How wide/high will the resulting qr-code be?"))
         self.text_qrdim.SetMaxSize(wx.Size(100, -1))
         qrdim_sizer.Add(label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         qrdim_sizer.Add(self.text_qrdim, 1, wx.EXPAND, 0)
 
         qrres_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, wx.ID_ANY, label=_("Resolution:"))
+        label = wx.StaticText(qrmain_panel, wx.ID_ANY, label=_("Resolution:"))
         label.SetMinSize(wx.Size(80, -1))
-        self.text_qrres = wx.TextCtrl(self, wx.ID_ANY, value="1")
+        self.text_qrres = wx.TextCtrl(qrmain_panel, wx.ID_ANY, value="1")
         self.text_qrres.SetToolTip(
             _("How big will the qr-code become (1..40, default 1)?")
         )
@@ -102,9 +107,9 @@ class BarcodeDialog(wx.Dialog):
         # qrborder_sizer.Add(self.text_qrborder, 1, wx.EXPAND, 0)
 
         qrbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, wx.ID_ANY, label=_("Boxsize:"))
+        label = wx.StaticText(qrmain_panel, wx.ID_ANY, label=_("Boxsize:"))
         label.SetMinSize(wx.Size(80, -1))
-        self.text_qrbox = wx.TextCtrl(self, wx.ID_ANY, value="10")
+        self.text_qrbox = wx.TextCtrl(qrmain_panel, wx.ID_ANY, value="10")
         self.text_qrbox.SetToolTip(
             _("How big is the boxsize of the pixels (default 10)?")
         )
@@ -113,11 +118,11 @@ class BarcodeDialog(wx.Dialog):
         qrbox_sizer.Add(self.text_qrbox, 1, wx.EXPAND, 0)
 
         qrerrcorr_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, wx.ID_ANY, label=_("Error:"))
+        label = wx.StaticText(qrmain_panel, wx.ID_ANY, label=_("Error:"))
         label.SetMinSize(wx.Size(80, -1))
         errchoices = ["L (7%)", "M (15%)", "Q (25%)", "H (30%)"]
         self.combo_errcorr = wx.ComboBox(
-            self,
+            qrmain_panel,
             wx.ID_ANY,
             choices=errchoices,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
@@ -134,6 +139,119 @@ class BarcodeDialog(wx.Dialog):
         # qroptions_sizer.Add(qrborder_sizer, 0, wx.EXPAND, 0)
         qroptions_sizer.Add(qrbox_sizer, 0, wx.EXPAND, 0)
         qroptions_sizer.Add(qrerrcorr_sizer, 0, wx.EXPAND, 0)
+
+        # --------------- WIFI PANEL
+
+        qrwifi_panel = wx.Panel(qrnotebook, wx.ID_ANY)
+        qrnotebook.AddPage(qrwifi_panel, _("WiFi"))
+        qrwifi_sizer = wx.BoxSizer(wx.VERTICAL)
+        qrwifi_panel.SetSizer(qrwifi_sizer)
+        qrwifi_ssid_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.text_wifi_ssid = wx.TextCtrl(qrwifi_panel, wx.ID_ANY)
+        ssid_label = wx.StaticText(qrwifi_panel, wx.ID_ANY, _("SSID:"))
+        ssid_label.SetMinSize(wx.Size(45, -1))
+        qrwifi_ssid_sizer.Add(ssid_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrwifi_ssid_sizer.Add(self.text_wifi_ssid, 1, wx.EXPAND, 0)
+
+        qrwifi_passwd_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.text_wifi_password = wx.TextCtrl(qrwifi_panel, wx.ID_ANY)
+        pass_label = wx.StaticText(qrwifi_panel, wx.ID_ANY, _("Key:"))
+        pass_label.SetMinSize(wx.Size(45, -1))
+        qrwifi_passwd_sizer.Add(pass_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrwifi_passwd_sizer.Add(self.text_wifi_password, 1, wx.EXPAND, 0)
+
+        qrwifi_wpa_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.combo_wifi_wpa = wx.ComboBox(
+            qrwifi_panel,
+            wx.ID_ANY,
+            choices=(_("WPA/WPA2/WPA3"), _("WEP"), _("None")),
+            style=wx.CB_DROPDOWN | wx.CB_READONLY,
+        )
+        self.combo_wifi_wpa.SetToolTip(
+            _("What kind of encryption does the network use?")
+        )
+        self.combo_wifi_wpa.SetSelection(0)  # WPA
+        wpa_label = wx.StaticText(qrwifi_panel, wx.ID_ANY, _("Encryption:"))
+        qrwifi_wpa_sizer.Add(wpa_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrwifi_wpa_sizer.Add(self.combo_wifi_wpa, 0, wx.EXPAND, 0)
+
+        qrwifi_hidden_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.check_hidden = wx.CheckBox(qrwifi_panel, wx.ID_ANY, _("Hidden"))
+        self.check_hidden.SetToolTip(_("Is the network hidden?"))
+        self.check_hidden.SetValue(False)
+        qrwifi_hidden_sizer.Add(self.check_hidden, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+
+        qrwifi_sizer.Add(qrwifi_ssid_sizer, 0, wx.EXPAND, 0)
+        qrwifi_sizer.Add(qrwifi_passwd_sizer, 0, wx.EXPAND, 0)
+        qrwifi_sizer.Add(qrwifi_wpa_sizer, 0, wx.EXPAND, 0)
+        qrwifi_sizer.Add(qrwifi_hidden_sizer, 0, wx.EXPAND, 0)
+        self.button_wifi = wx.Button(qrwifi_panel, wx.ID_ANY, _("Generate Pattern"))
+        qrwifi_sizer.Add(self.button_wifi, 0, 0, 0)
+        self.button_wifi.Bind(wx.EVT_BUTTON, self.on_wifi)
+
+        # --------------- WIFI PANEL
+
+        qrvcard_panel = wx.Panel(qrnotebook, wx.ID_ANY)
+        qrnotebook.AddPage(qrvcard_panel, _("VCard"))
+        qrvcard_sizer = wx.BoxSizer(wx.VERTICAL)
+        qrvcard_panel.SetSizer(qrvcard_sizer)
+        qrvcard_name = wx.BoxSizer(wx.HORIZONTAL)
+        self.text_vcard_name = wx.TextCtrl(qrvcard_panel, wx.ID_ANY)
+        self.text_vcard_name.SetToolTip(_("Provide your name as lastname,firstname"))
+        vcard_name_label = wx.StaticText(qrvcard_panel, wx.ID_ANY, _("Name:"))
+        vcard_name_label.SetMinSize(wx.Size(45, -1))
+        qrvcard_name.Add(vcard_name_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrvcard_name.Add(self.text_vcard_name, 1, wx.EXPAND, 0)
+
+        qrvcard_address = wx.BoxSizer(wx.HORIZONTAL)
+        self.text_vcard_address = wx.TextCtrl(qrvcard_panel, wx.ID_ANY)
+        self.text_vcard_address.SetToolTip(
+            _(
+                "Provide your address as:\n"
+                + "PO box, room number, house number, city, prefecture, zip code and country"
+            )
+        )
+        vcard_address_label = wx.StaticText(qrvcard_panel, wx.ID_ANY, _("Address:"))
+        vcard_address_label.SetMinSize(wx.Size(45, -1))
+        qrvcard_address.Add(vcard_address_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrvcard_address.Add(self.text_vcard_address, 1, wx.EXPAND, 0)
+
+        qrvcard_tel = wx.BoxSizer(wx.HORIZONTAL)
+        self.text_vcard_tel = wx.TextCtrl(qrvcard_panel, wx.ID_ANY)
+        self.text_vcard_tel.SetToolTip(_("Provide your phone-number"))
+        vcard_tel_label = wx.StaticText(qrvcard_panel, wx.ID_ANY, _("Phone:"))
+        vcard_tel_label.SetMinSize(wx.Size(45, -1))
+        qrvcard_tel.Add(vcard_tel_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrvcard_tel.Add(self.text_vcard_tel, 1, wx.EXPAND, 0)
+
+        qrvcard_email = wx.BoxSizer(wx.HORIZONTAL)
+        self.text_vcard_email = wx.TextCtrl(qrvcard_panel, wx.ID_ANY)
+        self.text_vcard_email.SetToolTip(_("Provide your email-Address"))
+        vcard_email_label = wx.StaticText(qrvcard_panel, wx.ID_ANY, _("email:"))
+        vcard_email_label.SetMinSize(wx.Size(45, -1))
+        qrvcard_email.Add(vcard_email_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrvcard_email.Add(self.text_vcard_email, 1, wx.EXPAND, 0)
+
+        qrvcard_url = wx.BoxSizer(wx.HORIZONTAL)
+        self.text_vcard_url = wx.TextCtrl(qrvcard_panel, wx.ID_ANY)
+        self.text_vcard_url.SetToolTip(_("Provide a valid URL"))
+        vcard_url_label = wx.StaticText(qrvcard_panel, wx.ID_ANY, _("URL:"))
+        vcard_url_label.SetMinSize(wx.Size(45, -1))
+        qrvcard_url.Add(vcard_url_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        qrvcard_url.Add(self.text_vcard_url, 1, wx.EXPAND, 0)
+
+        qrvcard_sizer.Add(qrvcard_name, 0, wx.EXPAND, 0)
+        qrvcard_sizer.Add(qrvcard_address, 0, wx.EXPAND, 0)
+        qrvcard_sizer.Add(qrvcard_tel, 0, wx.EXPAND, 0)
+        qrvcard_sizer.Add(qrvcard_email, 0, wx.EXPAND, 0)
+        qrvcard_sizer.Add(qrvcard_url, 0, wx.EXPAND, 0)
+        self.button_vcard = wx.Button(qrvcard_panel, wx.ID_ANY, _("Generate Pattern"))
+        qrvcard_sizer.Add(self.button_vcard, 0, 0, 0)
+        self.button_vcard.Bind(wx.EVT_BUTTON, self.on_vcard)
+
+        # --------------- Barcode Section
 
         bar_sizer = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, _("Barcode:")), wx.VERTICAL
@@ -189,7 +307,7 @@ class BarcodeDialog(wx.Dialog):
         baroptions_sizer.Add(barcheck1_sizer, 0, wx.EXPAND, 0)
 
         qr_sizer.Add(self.option_qr, 0, wx.EXPAND, 1)
-        qr_sizer.Add(qroptions_sizer, 1, wx.EXPAND, 0)
+        qr_sizer.Add(qrnotebook, 1, wx.EXPAND, 0)
         bar_sizer.Add(self.option_bar, 0, wx.EXPAND, 1)
         bar_sizer.Add(baroptions_sizer, 1, wx.EXPAND, 0)
 
@@ -318,19 +436,20 @@ class BarcodeDialog(wx.Dialog):
         self.command = result
         event.Skip()
 
-    def make_ssid(self):
-        hidden = None  # False, True, None
-        ssid = ""
-        password = ""
-        security = 0  # 0=None, 1=WPA, 2=WEP
+    def on_wifi(self, event):
+        hidden = bool(self.check_hidden.GetValue())  # False, True, None
+        ssid = self.text_wifi_ssid.GetValue()
+        password = self.text_wifi_password.GetValue()
+        security = max(0, self.combo_wifi_wpa.GetSelection())
+        # 0=WPA, 1=WEP, 2 = None
         result = "WIFI:"
         if ssid:
             result += f"S:{ssid};"
         if password:
             result += f"P:{password};"
-        if security == 1:
+        if security == 0:
             result += "T:WPA;"
-        if security == 2:
+        if security == 1:
             result += "T:WEP;"
         if hidden is None:
             result += ";"
@@ -340,9 +459,10 @@ class BarcodeDialog(wx.Dialog):
             result += "H:FALSE;"
         while not result.endswith(";;"):
             result += ";"
+        self.option_qr.SetValue(True)
         self.text_code.SetValue(result)
 
-    def make_vcard(self, **kwds):
+    def on_vcard(self, event):
         """
         Tag	i-mode compatible bar code recognition function	Description	Example
         ADR	        The physical delivery address. The fields divided by commas (,) denote
@@ -371,22 +491,26 @@ class BarcodeDialog(wx.Dialog):
                     URL:https://www.johndoe.com/;
         """
         result = "MECARD:"
-        if "name" in kwds:
-            result += f"N:{kwds['name']};"
-        if "adr" in kwds:
-            result += f"ADR:{kwds['adr']};"
-        if "address" in kwds:
-            result += f"ADR:{kwds['address']};"
-        if "email" in kwds:
-            result += f"EMAIL:{kwds['email']};"
-        if "tel" in kwds:
-            result += f"TEL:{kwds['tel']};"
-        if "url" in kwds:
-            result += f"URL:{kwds['url']};"
+        vcardname = self.text_vcard_name.GetValue().strip()
+        vcardtel = self.text_vcard_tel.GetValue().strip()
+        vcardadr = self.text_vcard_address.GetValue().strip()
+        vcardemail = self.text_vcard_email.GetValue().strip()
+        vcardurl = self.text_vcard_url.GetValue().strip()
+        if vcardname != "":
+            result += f"N:{vcardname};"
+        if vcardadr != "":
+            result += f"ADR:{vcardadr};"
+        if vcardemail != "":
+            result += f"EMAIL:{vcardemail};"
+        if vcardtel != "":
+            result += f"TEL:{vcardtel};"
+        if vcardurl != "":
+            result += f"URL:{vcardurl};"
 
         while not result.endswith(";;"):
             result += ";"
         self.text_code.SetValue(result)
+        self.option_qr.SetValue(True)
 
 
 class QRCodePropertyPanel(wx.Panel):
@@ -474,7 +598,7 @@ class EANCodePropertyPanel(wx.Panel):
         self.node = node
 
         main_sizer = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, _("Text to use for EAN-Code:")), wx.HORIZONTAL
+            wx.StaticBox(self, wx.ID_ANY, _("Text to use for Barcode:")), wx.HORIZONTAL
         )
         self.text_text = wx.TextCtrl(self, wx.ID_ANY, "")
         main_sizer.Add(self.text_text, 1, wx.EXPAND, 0)
@@ -513,6 +637,7 @@ class EANCodePropertyPanel(wx.Panel):
         vtext = self.text_text.GetValue()
         if self.node.mktext == vtext:
             return
+        self.node.mktext = vtext
         update_barcode(self.context, self.node, vtext)
         self.context.signal("element_property_reload", self.node)
         self.context.signal("refresh_scene", "Scene")
