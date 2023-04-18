@@ -35,6 +35,18 @@ Arguments:
  Options:
 >    --notext  (-n)      suppress text display
 
+* GUI-Support
+The installation of this tool will register a new button in the Design section of MeerK40t:
+<img width="639" alt="image" src="https://user-images.githubusercontent.com/2670784/232893108-c2f4293c-f084-4d5b-8900-b4cbd74f0e38.png">
+
+If you click on it then a dialog will pop up allowing you to design a qr-code / a barcode:
+
+<img width="258" alt="image" src="https://user-images.githubusercontent.com/2670784/232893402-88694837-370a-4b34-a0b7-e9e2ac83c0bc.png">
+
+This will create an element in Meerk40t that can be treated like any other regular path, but which will allow post-creation change of the underlying code (ie the barcode will be regenerated based on the new input).
+
+<img width="432" alt="image" src="https://user-images.githubusercontent.com/2670784/232892296-c3cbae13-53d8-4143-9667-94cdc31cb4a5.png">
+
 # Installing
 * `pip install meerk40t-barcodes`
 Or
