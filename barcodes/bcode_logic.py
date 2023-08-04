@@ -2,6 +2,14 @@
 This module contains the logic to create the different barcode elements
 """
 
+def PROVIDED_BARCODES():
+    import barcode
+    result = list(barcode.PROVIDED_BARCODES)
+    special = "code39"
+    if special in result:
+        idx = result.index(special)
+        result.insert(idx + 1, special + "+checksum")
+    return result
 
 def render_barcode(
     context,
@@ -54,7 +62,7 @@ def render_barcode(
         svg_lines = svg_str.split("\r\n")
         if len(svg_lines) <= 1:
             svg_lines = svg_str.split("\n")
-        
+
         for line in svg_lines:
             # print (f"{line}")
             if pattern_rect in line:
@@ -270,6 +278,15 @@ def render_barcode(
         return maximum_width, maximum_height, origin_x, origin_y, data
 
     elements = context.elements
+    special = "code39"
+    use_auto_checksum_param = False
+    auto_checksum = False
+    if btype.startswith(special):
+        use_auto_checksum_param = True
+        if btype.endswith("+checksum"):
+            btype = special
+            auto_checksum = True
+
     bcode_class = barcode.get_barcode_class(btype)
     if hasattr(bcode_class, "digits"):
         digits = getattr(bcode_class, "digits", 0)
@@ -277,10 +294,16 @@ def render_barcode(
             while len(code) < digits:
                 code = "0" + code
     writer = barcode.writer.SVGWriter()
-    try:
-        my_barcode = bcode_class(code, writer=writer)
-    except:
-        return None
+    if use_auto_checksum_param:
+        try:
+            my_barcode = bcode_class(code, writer=writer, add_checksum=auto_checksum)
+        except:
+            return None
+    else:
+        try:
+            my_barcode = bcode_class(code, writer=writer)
+        except:
+            return None
     if hasattr(my_barcode, "build"):
         my_barcode.build()
     # print(f"Generated barcode for {code} ({btype})")

@@ -1,7 +1,6 @@
 import wx
-from barcode import PROVIDED_BARCODES
 
-from .bcode_logic import update_barcode, update_qr
+from .bcode_logic import PROVIDED_BARCODES, update_barcode, update_qr
 
 _ = wx.GetTranslation
 
@@ -14,6 +13,7 @@ class BarcodeDialog(wx.Dialog):
         self.context = context
         _ = context._
         self.command = ""
+        self.PROVIDED_BARCODES = PROVIDED_BARCODES()
         # begin wxGlade: RefAlign.__init__
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, *args, **kwds)
@@ -266,7 +266,7 @@ class BarcodeDialog(wx.Dialog):
         self.combo_barcode = wx.ComboBox(
             self,
             wx.ID_ANY,
-            choices=PROVIDED_BARCODES,
+            choices=self.PROVIDED_BARCODES,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
         )
         self.combo_barcode.SetToolTip(_("What kind of barcode do you want to create?"))
@@ -426,7 +426,7 @@ class BarcodeDialog(wx.Dialog):
             # Barcode
             dimx = self.text_bardimx.GetValue()
             dimy = self.text_bardimy.GetValue()
-            btype = PROVIDED_BARCODES[self.combo_barcode.GetSelection()]
+            btype = self.PROVIDED_BARCODES[self.combo_barcode.GetSelection()]
             if self.check_suppress.GetValue():
                 suppress = " --notext"
             else:
