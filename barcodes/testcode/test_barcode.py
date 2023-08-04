@@ -1,6 +1,7 @@
 import barcode
 
 def poor_mans_svg_parser(svg_str):
+    print ("Parsing starts...")
     pattern_rect ="<rect"
     pattern_text ="<text"
     pattern_group_start = "<g "
@@ -9,8 +10,12 @@ def poor_mans_svg_parser(svg_str):
     # so no need to get overly fancy...
     # print(svg_str)
     svg_lines = svg_str.split("\r\n")
+    if len(svg_lines) <= 1:
+        svg_lines = svg_str.split("\n")
+    linenum = 0
     for line in svg_lines:
-        # print (f"{line}")
+        linenum += 1
+        print (f"{linenum:4d}: {line}")
         if pattern_rect in line:
             subpattern= (
                 ('height="', 'height'),
@@ -102,12 +107,18 @@ def poor_mans_svg_parser(svg_str):
             print (f"Group end: '{line}'")
         elif pattern_group_start in line:
             print (f"Group start: '{line}'")
+    print ("Parsing ends...")
 
 def main():
     barcode_type = "ean13"
     msg = "12345678"
+    print (f"Get barcode class from {barcode.version}")
     bcode_class = barcode.get_barcode_class(barcode_type)
+    if bcode_class is None:
+        print ("Something fishy, not getting any class")
+        return
     if hasattr(bcode_class, "digits"):
+        print ("Retrieving digits....")
         digits = getattr(bcode_class, "digits", 0)
         if digits>0:
             while len(msg)<digits:

@@ -52,6 +52,9 @@ def render_barcode(
         # a text inside a group, so no need to get overly fancy...
         # print(svg_str)
         svg_lines = svg_str.split("\r\n")
+        if len(svg_lines) <= 1:
+            svg_lines = svg_str.split("\n")
+        
         for line in svg_lines:
             # print (f"{line}")
             if pattern_rect in line:
