@@ -2,14 +2,17 @@
 This module contains the logic to create the different barcode elements
 """
 
+
 def PROVIDED_BARCODES():
     import barcode
+
     result = list(barcode.PROVIDED_BARCODES)
     special = "code39"
     if special in result:
         idx = result.index(special)
         result.insert(idx + 1, special + "+checksum")
     return result
+
 
 def render_barcode(
     context,

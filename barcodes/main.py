@@ -250,7 +250,7 @@ def register_bar_code_stuff(kernel):
     _ = kernel.translation
     import barcode
 
-    from .bcode_logic import create_barcode, PROVIDED_BARCODES
+    from .bcode_logic import PROVIDED_BARCODES, create_barcode
 
     @kernel.console_option(
         "notext", "n", type=bool, action="store_true", help=_("suppress text display")
@@ -303,9 +303,7 @@ def register_bar_code_stuff(kernel):
             params = "barcode x_pos y_pos dimx dimy btype code"
             channel(_("Please provide all parameters: {params}").format(params=params))
             channel(
-                _("Supported formats: {all}").format(
-                    all=",".join(PROVIDED_BARCODES())
-                )
+                _("Supported formats: {all}").format(all=",".join(PROVIDED_BARCODES()))
             )
             return
         if btype not in PROVIDED_BARCODES():
