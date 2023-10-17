@@ -407,6 +407,9 @@ class BarcodeDialog(wx.Dialog):
         self.button_OK.Enable(active)
 
     def on_okay(self, event):
+        def unquote(source):
+            return source.replace('"', "'")
+
         result = ""
         code = self.text_code.GetValue()
         xpos = self.text_xpos.GetValue()
@@ -419,7 +422,7 @@ class BarcodeDialog(wx.Dialog):
             ecval = self.combo_errcorr.GetSelection()
             corrcode = ("M", "L", "Q", "H")
             errc = corrcode[ecval]
-            result = f'qrcode {xpos} {ypos} {dim} "{code}" '
+            result = f'qrcode {xpos} {ypos} {dim} "{unquote(code)}" '
             result += f"--boxsize {box} --version {res} --errcorr {errc}"
             # result += f" --border {border}"
         else:
@@ -431,7 +434,7 @@ class BarcodeDialog(wx.Dialog):
                 suppress = " --notext"
             else:
                 suppress = ""
-            result = f'barcode {xpos} {ypos} {dimx} {dimy} {btype} "{code}"'
+            result = f'barcode {xpos} {ypos} {dimx} {dimy} {btype} "{unqote(code)}"'
             result += f"{suppress}"
         self.command = result
         event.Skip()
