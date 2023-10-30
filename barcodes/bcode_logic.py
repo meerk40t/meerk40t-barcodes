@@ -372,7 +372,7 @@ def create_barcode(
             # We store the data for later customisation
             node.mktext = orgcode
             node.mkbarcode = "ean"
-            node.mkparam = btype
+            node.mkbcparam = btype
             node._translated_text = code
         elements.elem_branch.add_node(node)
         if groupnode is not None:
@@ -399,7 +399,7 @@ def update_barcode(context, node, code):
         code = elements.mywordlist.translate(code)
     # print(f"ean update called with {code} ({orgcode}) for {node.label}")
 
-    btype = getattr(node, "mkparam", "")
+    btype = getattr(node, "mkbcparam", "")
     if btype == "":
         btype = "ean14"
     bb = node.path.bbox(False)
@@ -462,6 +462,8 @@ def render_qr(context, version, errc, boxsize, border, wd, code):
 
     path = None
     elements = context.elements
+    if version is None:
+        version = 1
     qr = qrcode.QRCode(
         version=version,
         error_correction=errc,
@@ -598,7 +600,7 @@ def create_qr(
     node.mktext = orgcode
     node._translated_text = code
     node.mkbarcode = "qr"
-    node.mkparam = (version, errc, boxsize, border)
+    node.mkbcparam = (version, errc, boxsize, border)
 
     data = [node]
     return data
@@ -634,8 +636,8 @@ def update_qr(context, node, code):
 
     boxsize = 10
     border = 4
-    if hasattr(node, "mkparam"):
-        valu = node.mkparam
+    if hasattr(node, "mkbcparam"):
+        valu = node.mkbcparam
         if isinstance(valu, (list, tuple)) and len(valu) > 3:
             version = valu[0]
             errc = valu[1]
