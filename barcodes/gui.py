@@ -434,7 +434,7 @@ class BarcodeDialog(wx.Dialog):
                 suppress = " --notext"
             else:
                 suppress = ""
-            result = f'barcode {xpos} {ypos} {dimx} {dimy} {btype} "{unqote(code)}"'
+            result = f'barcode {xpos} {ypos} {dimx} {dimy} {btype} "{unquote(code)}"'
             result += f"{suppress}"
         self.command = result
         event.Skip()
