@@ -442,7 +442,7 @@ def register_gui_stuff(module):
     import wx
 
     from .gui import BarcodeDialog, EANCodePropertyPanel, QRCodePropertyPanel
-    from .tools.icons import STD_ICON_SIZE, icons8_barcode_50
+    from .tools.icons import STD_ICON_SIZE, barcode_icon
 
     context = module.context
     kernel = context._kernel
@@ -450,11 +450,12 @@ def register_gui_stuff(module):
     # app = context.app
     # print (f"Received context: {vars(context)}")
     # The main interface for creation
+    icon = barcode_icon()
     kernel.register(
         "button/extended_tools/barcode",
         {
             "label": _("Barcode"),
-            "icon": icons8_barcode_50,
+            "icon": icon,
             "tip": _("Create an ean-barcode or a qr-code"),
             "action": lambda v: display_barcode_dialog(context=context),
             "size": STD_ICON_SIZE,
