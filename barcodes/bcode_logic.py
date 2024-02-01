@@ -23,6 +23,7 @@ def render_barcode(
     btype=None,
     code=None,
     notext=None,
+    channel=None,
 ):
     import barcode
     from meerk40t.svgelements import Color, Matrix, Path
@@ -308,7 +309,12 @@ def render_barcode(
         except:
             return None
     if hasattr(my_barcode, "build"):
-        my_barcode.build()
+        try:
+            my_barcode.build()
+        except Exception as e:
+            if channel:
+                channel(f"Could not create the barcode: {e}")
+            return None
     # print(f"Generated barcode for {code} ({btype})")
     bytes_result = my_barcode.render()
     result = bytes_result.decode("utf-8")
@@ -318,7 +324,6 @@ def render_barcode(
 
 def create_barcode(
     kernel,
-    channel,
     x_pos=None,
     y_pos=None,
     dimx=None,
@@ -326,6 +331,7 @@ def create_barcode(
     btype=None,
     code=None,
     notext=None,
+    channel=None,
 ):
     # ---------------------------------
     _ = kernel.translation
@@ -359,6 +365,7 @@ def create_barcode(
         btype=btype,
         code=code,
         notext=notext,
+        channel=channel,
     )
     if data is None:
         return None
@@ -417,6 +424,7 @@ def update_barcode(context, node, code):
         btype=btype,
         code=code,
         notext=notext,
+        channel=None,
     )
     if data is None:
         return None
@@ -454,7 +462,7 @@ def update_barcode(context, node, code):
                 e.modified()
 
 
-def render_qr(context, version, errc, boxsize, border, wd, code):
+def render_qr(context, version, errc, boxsize, border, wd, code, channel=None):
     import qrcode
     import qrcode.image.svg
     from meerk40t.core.units import Length
@@ -464,20 +472,25 @@ def render_qr(context, version, errc, boxsize, border, wd, code):
     elements = context.elements
     if version is None:
         version = 1
-    qr = qrcode.QRCode(
-        version=version,
-        error_correction=errc,
-        box_size=boxsize,
-        border=border,
-    )
+    try:
+        qr = qrcode.QRCode(
+            version=version,
+            error_correction=errc,
+            box_size=boxsize,
+            border=border,
+        )
 
-    qr.add_data(code)
-    factory = qrcode.image.svg.SvgPathImage
-    qr.image_factory = factory
-    if version is None:
-        img = qr.make_image(fit=True)
-    else:
-        img = qr.make_image()
+        qr.add_data(code)
+        factory = qrcode.image.svg.SvgPathImage
+        qr.image_factory = factory
+        if version is None:
+            img = qr.make_image(fit=True)
+        else:
+            img = qr.make_image()
+    except Exception as e:
+        if channel:
+            print(f"Could not create a QR-code: {e}")
+        return None
     # We do get a ready to go svg string, but let's try to
     # extract some basic information
     # 1) Dimension
@@ -584,7 +597,7 @@ def create_qr(
     except ValueError:
         channel(_("Invalid dimensions provided"))
         return None
-    path = render_qr(kernel, version, errc, boxsize, border, wd, code)
+    path = render_qr(kernel, version, errc, boxsize, border, wd, code, channel=channel)
     if path is None:
         return None
     node = elements.elem_branch.add(
