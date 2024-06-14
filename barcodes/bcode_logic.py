@@ -316,7 +316,8 @@ def render_barcode(
                 channel(f"Could not create the barcode: {e}")
             return None
     # print(f"Generated barcode for {code} ({btype})")
-    bytes_result = my_barcode.render()
+    # ITF requires an explicit value for writer_options
+    bytes_result = my_barcode.render(writer_options=None)
     result = bytes_result.decode("utf-8")
     max_wd, max_ht, ox, oy, data = poor_mans_svg_parser(result, True)
     return data
