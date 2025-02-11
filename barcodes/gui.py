@@ -348,6 +348,13 @@ class BarcodeDialog(wx.Dialog):
         self.Bind(wx.EVT_RADIOBUTTON, self.enable_controls, self.option_qr)
 
         self.Bind(wx.EVT_BUTTON, self.on_okay, self.button_OK)
+        # Try to use meerk40t theme
+        if hasattr(self.context, "themes"):
+            try:
+                self.context.themes.set_window_colors(self)
+            except AttributeError:
+                pass
+
         # Force disable/enable of elements
         self.option_qr.SetValue(True)
         self.enable_buttons(None)
@@ -533,6 +540,12 @@ class QRCodePropertyPanel(wx.Panel):
         wx.Panel.__init__(self, *args, **kwds)
         self.context = context
         self.node = node
+        # Try to use meerk40t theme
+        if hasattr(self.context, "themes"):
+            try:
+                self.context.themes.set_window_colors(self)
+            except AttributeError:
+                pass
 
         main_sizer = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, _("Text to use for QR-Code:")), wx.HORIZONTAL
@@ -599,6 +612,12 @@ class EANCodePropertyPanel(wx.Panel):
         wx.Panel.__init__(self, *args, **kwds)
         self.context = context
         self.node = node
+        # Try to use meerk40t theme
+        if hasattr(self.context, "themes"):
+            try:
+                self.context.themes.set_window_colors(self)
+            except AttributeError:
+                pass
 
         main_sizer = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, _("Text to use for Barcode:")), wx.HORIZONTAL
