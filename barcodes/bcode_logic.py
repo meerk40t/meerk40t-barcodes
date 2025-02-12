@@ -6,7 +6,11 @@ This module contains the logic to create the different barcode elements
 def PROVIDED_BARCODES():
     import barcode
 
-    result = list(barcode.PROVIDED_BARCODES)
+    try:
+        result = list(barcode.PROVIDED_BARCODES)
+    except AttributeError:
+        print ("Are you sure the right barcode module has been installed (pip install python-barcode)")
+        return []
     special = "code39"
     if special in result:
         idx = result.index(special)
